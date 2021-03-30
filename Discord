@@ -1,1 +1,76 @@
+import discord
+from discord.ext import commands
+from discord.voice_client import VoiceClient
+import youtube_dl
 
+
+
+bot = commands.Bot(command_prefix = '#', description = "Bot Test")
+
+
+@bot.event
+async def on_ready():
+    await bot.change_presence(status=discord.Status.idle, activity=discord.Game("Hello Team!"))
+    print("Ready!")
+
+
+@bot.event
+async def on_member_join(member):
+    channel = discord.utils.get(member.guild.channels, name='général')
+    await channel.send(f'Welcome {member.mention}!')
+    
+
+@bot.command()
+async def Bonjour(ctx):
+    await ctx.send("Bonjour !")
+
+
+@bot.command()
+async def InfoServeur(ctx):
+    serveur = ctx.guild
+    nomDuServeur = serveur.name
+    nbDePersonnes = serveur.member_count
+    message = f"Le serveur **{nomDuServeur}** contient **{nbDePersonnes}** personnes."      # 1*:en italique ,2*: en gras
+    await ctx.send(message)
+    
+
+@bot.command()
+@commands.has_permissions(manage_messages=True)
+async def clear(ctx, amount : int):
+    await ctx.channel.purge(limit=amount)
+    
+
+
+players = {}
+
+@bot.command(pass_context=True)
+async def join(ctx):
+    channel = ctx.message.author.voice.voice_channel
+    await bot.join_voice_channel(channel)
+
+@bot.command(pass_context=True)
+async def leave(ctx):
+    server = ctx.message.server
+    voice_client = bot.voice_client_in(server)
+    await voice_client.disconnect()
+    
+@bot.command(pass_context=True)
+async def play(ctx, url):
+    server = ctx.message.server
+    voice_client = bot.voice_client_in(server)
+    player = await voice_client.create_ytdl_player(url)
+    players[server.id] = player
+    player.start
+
+@bot.command(pass_context=True)
+async def pause(ctx):
+    id = ctx.message.server.id
+    players[id].pause()
+        
+@bot.command(pass_context=True)
+async def resume(ctx):
+    id = ctx.message.server.id
+    players[id].resume()
+
+
+bot.run("")
