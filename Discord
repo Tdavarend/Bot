@@ -1,7 +1,5 @@
 import discord
 from discord.ext import commands
-from discord.voice_client import VoiceClient
-import youtube_dl
 import json
 import requests
 from pprint import pprint
@@ -35,60 +33,54 @@ async def InfoServeur(ctx):
     nbDePersonnes = serveur.member_count
     message = f"Le serveur **{nomDuServeur}** contient **{nbDePersonnes}** personnes."      # 1*:en italique ,2*: en gras
     await ctx.send(message)
-    
 
-@bot.command()
-@commands.has_permissions(manage_messages=True)
-async def clear(ctx, amount : int):
-    await ctx.channel.purge(limit=amount)
-    
-
-
-players = {}
-
-@bot.command(pass_context=True)
-async def join(ctx):
-    channel = ctx.message.author.voice.voice_channel
-    await bot.join_voice_channel(channel)
-
-@bot.command(pass_context=True)
-async def leave(ctx):
-    server = ctx.message.server
-    voice_client = bot.voice_client_in(server)
-    await voice_client.disconnect()
-    
-@bot.command(pass_context=True)
-async def play(ctx, url):
-    server = ctx.message.server
-    voice_client = bot.voice_client_in(server)
-    player = await voice_client.create_ytdl_player(url)
-    players[server.id] = player
-    player.start
-
-@bot.command(pass_context=True)
-async def pause(ctx):
-    id = ctx.message.server.id
-    players[id].pause()
-        
-@bot.command(pass_context=True)
-async def resume(ctx):
-    id = ctx.message.server.id
-    players[id].resume()
-
-@bot.command()
-async def météo(ctx, city):
+#Donne les coordonnées géographiques de la ville voulue pour pouvoir avoir les prévisions météo de cette même ville
+def coordonnées(city, long_or_lat):
     url = 'http://api.openweathermap.org/data/2.5/weather?q={}&appid=c21a9f12441f8209ffb56153f5be52b2'.format(city)
     res = requests.get(url)
     data = res.json()
-    temp = float(data['main']['temp']) - 273.15
-    description = data['weather'][0]['description']
-    wind = 3600 * float(data['wind']['speed']) / 1000
-    message_temp = f"Température: **{temp}**°C"
-    message_description = f"Description: **{description}**"
-    message_wind = f"Vent: **{wind}** km/h"
-    await ctx.send(message_temp)
-    await ctx.send(message_description)
-    await ctx.send(message_wind)
+    if long_or_lat == "longitude":
+        position = data['coord']['lon']
+    elif long_or_lat == "latitude":
+        position = data['coord']['lat']
+    return position
+
+#Donne la météo d'une ville jusqu'à 1 semaine à l'avance
+@bot.command()
+async def météo(ctx, city, moment, compteur_jour_heure):
+    latitude = coordonnées(city, "latitude")
+    longitude = coordonnées(city, "longitude")
+    url = 'https://api.openweathermap.org/data/2.5/onecall?lat={}&lon={}&exclude=&appid=c21a9f12441f8209ffb56153f5be52b2'.format(latitude,longitude)
+    res = requests.get(url)
+    data = res.json()
+    if compteur_jour_heure == "now" or compteur_jour_heure == "today":
+        compteur_jour_heure = 0
+    
+    #Cette condition donne la météo à l'instant où elle est demandée
+    if moment == "current":
+        température = "%.1f" % (float(data[moment]['temp']) - 273.15)
+        humidité = float(data[moment]['humidity'])        
+        wind = "%.1f" % (float(data[moment]['wind_speed']) * 3.6)
+        description = data[moment]['weather'][0]['description']
+        message = f"Température: **{température}°C** \nTaux d'humidité: **{humidité}%** \nVitesse du vent:  **{wind} km/h** \nEtat du ciel: **{description}**"
+        await ctx.send(message)      
+    #Cette condition donne la météo par heure jusqu'à 48 heures à l'avance
+    if moment == "hourly":
+        température = "%.1f" % (float(data[moment][int(compteur_jour_heure)]['temp']) - 273.15)
+        humidité = float(data[moment][int(compteur_jour_heure)]['humidity']) 
+        wind = "%.1f" % (float(data[moment][int(compteur_jour_heure)]['wind_speed']) * 3.6)
+        description = data[moment][int(compteur_jour_heure)]['weather'][0]['description']
+        message = f"Température: **{température}°C** \nTaux d'humidité: **{humidité}%** \nVitesse du vent:  **{wind} km/h** \nEtat du ciel: **{description}**"
+        await ctx.send(message)  
+    #Cette condition donne la météo par jour jusqu'à 7 jours à l'avance
+    if moment == "daily":
+        température_jour = "%.1f" % (float(data[moment][int(compteur_jour_heure)]['temp']['day']) - 273.15)
+        température_nuit = "%.1f" % (float(data[moment][int(compteur_jour_heure)]['temp']['night']) - 273.15)
+        humidité = float(data[moment][int(compteur_jour_heure)]['humidity']) 
+        wind = "%.1f" % (float(data[moment][int(compteur_jour_heure)]['wind_speed']) * 3.6)
+        description = data[moment][int(compteur_jour_heure)]['weather'][0]['description']
+        message = f"Température dans la journée: **{température_jour}°C** \nTempérature dans la nuit: **{température_nuit}°C** \nTaux d'humidité: **{humidité}%** \nVitesse du vent:  **{wind} km/h** \nEtat du ciel: **{description}**"
+        await ctx.send(message)
 
 
 bot.run("")
