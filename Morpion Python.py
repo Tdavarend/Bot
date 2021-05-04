@@ -63,8 +63,6 @@ def gagne(grille):
 valeur = True
 compteur_joueur = 1
 liste_cases = []
-liste_cases_joueur_1 = []
-liste_cases_joueur_2 = []
 partie_remportee = False
 #boucle while qui fonctionne tant qu'une des conditions de fin de partie n'est pas remplie
 while valeur == True:        
