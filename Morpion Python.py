@@ -53,8 +53,6 @@ def erreur_case_remplie(ligne,colonne):
 
 #revoie True si la partie est gagnee par un des deux joueurs
 def gagne(grille):
-    '''if ((('1','1') and ('1','2') and ('1','3')) in liste_joueur) or ((('2','1') and ('2','2') and ('2','3')) in liste_joueur) or ((('3','1') and ('3','2') and ('3','3'))in liste_joueur) or ((('1','1') and ('2','1') and ('3','1'))in liste_joueur) or ((('1','2') and ('2','2') and ('3','2'))in liste_joueur) or ((('1','3') and ('2','3') and ('3','3'))in liste_joueur) or ((('1','1') and ('2','2') and ('3','3'))in liste_joueur) or ((('3','1') and ('2','2') and ('1','3'))in liste_joueur):
-        return True'''
     for i in range(3):
         if grille[1]==grille[5]==grille[9]!=' ' or grille[25]==grille[29]==grille[33]!=' ' or grille[49]==grille[53]==grille[57]!=' ' or grille[1]==grille[25]==grille[49]!=' ' or grille[5]==grille[29]==grille[53]!=' ' or grille[9]==grille[33]==grille[57]!=' ' or grille[1]==grille[29]==grille[57]!=' ' or grille[9]==grille[29]==grille[49]!=' ':
             return True
