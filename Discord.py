@@ -55,31 +55,42 @@ async def météo(ctx, city, moment, compteur_jour_heure):
     data = res.json()
     if compteur_jour_heure == "now" or compteur_jour_heure == "today":
         compteur_jour_heure = 0
-    
-    #Cette condition donne la météo à l'instant où elle est demandée
+
+    #Cette condition donne la m�t�o � l'instant o� elle est demand�e
     if moment == "current":
-        température = "%.1f" % (float(data[moment]['temp']) - 273.15)
-        humidité = float(data[moment]['humidity'])        
-        wind = "%.1f" % (float(data[moment]['wind_speed']) * 3.6)
-        description = data[moment]['weather'][0]['description']
+        température = "%.1f" % (float(data[moment]['temp']) - 273.15)       #data[moment]['temp'] donne la temp�rature en kelvin / converti en �C et donn� avec 1 chiffre significatif 
+        humidité = float(data[moment]['humidity'])      #humidit� en %      
+        wind = "%.1f" % (float(data[moment]['wind_speed']) * 3.6)       #float(data[moment]['wind_speed'] donne la vitesse du vent en m/s / converti en m/s
+        description = data[moment]['weather'][0]['description']     
         message = f"Température: **{température}°C** \nTaux d'humidité: **{humidité}%** \nVitesse du vent:  **{wind} km/h** \nEtat du ciel: **{description}**"
         await ctx.send(message)      
-    #Cette condition donne la météo par heure jusqu'à 48 heures à l'avance
-    if moment == "hourly":
-        température = "%.1f" % (float(data[moment][int(compteur_jour_heure)]['temp']) - 273.15)
-        humidité = float(data[moment][int(compteur_jour_heure)]['humidity']) 
-        wind = "%.1f" % (float(data[moment][int(compteur_jour_heure)]['wind_speed']) * 3.6)
-        description = data[moment][int(compteur_jour_heure)]['weather'][0]['description']
-        message = f"Température: **{température}°C** \nTaux d'humidité: **{humidité}%** \nVitesse du vent:  **{wind} km/h** \nEtat du ciel: **{description}**"
-        await ctx.send(message)  
-    #Cette condition donne la météo par jour jusqu'à 7 jours à l'avance
-    if moment == "daily":
-        température_jour = "%.1f" % (float(data[moment][int(compteur_jour_heure)]['temp']['day']) - 273.15)
-        température_nuit = "%.1f" % (float(data[moment][int(compteur_jour_heure)]['temp']['night']) - 273.15)
-        humidité = float(data[moment][int(compteur_jour_heure)]['humidity']) 
-        wind = "%.1f" % (float(data[moment][int(compteur_jour_heure)]['wind_speed']) * 3.6)
-        description = data[moment][int(compteur_jour_heure)]['weather'][0]['description']
-        message = f"Température dans la journée: **{température_jour}°C** \nTempérature dans la nuit: **{température_nuit}°C** \nTaux d'humidité: **{humidité}%** \nVitesse du vent:  **{wind} km/h** \nEtat du ciel: **{description}**"
+    #Cette condition donne la m�t�o par heure jusqu'� 48 heures � l'avance
+    elif moment == "hourly":
+        if -1 < int(compteur_jour_heure) < 48:
+          température = "%.1f" % (float(data[moment][int(compteur_jour_heure)]['temp']) - 273.15)
+          humidité = float(data[moment][int(compteur_jour_heure)]['humidity']) 
+          wind = "%.1f" % (float(data[moment][int(compteur_jour_heure)]['wind_speed']) * 3.6)
+          description = data[moment][int(compteur_jour_heure)]['weather'][0]['description']
+          message = f"Température: **{température}°C** \nTaux d'humidité: **{humidité}%** \nVitesse du vent:  **{wind} km/h** \nEtat du ciel: **{description}**"
+          await ctx.send(message)
+        else:
+          message = f"Erreur valeur.\nVeuillez donner une valeur correct (entre 0 et 47)."
+          await ctx.send(message)
+    #Cette condition donne la m�t�o par jour jusqu'� 7 jours � l'avance
+    elif moment == "daily":
+        if -1 < int(compteur_jour_heure) < 8:
+          température_jour = "%.1f" % (float(data[moment][int(compteur_jour_heure)]['temp']['day']) - 273.15)
+          température_nuit = "%.1f" % (float(data[moment][int(compteur_jour_heure)]['temp']['night']) - 273.15)
+          humidité = float(data[moment][int(compteur_jour_heure)]['humidity']) 
+          wind = "%.1f" % (float(data[moment][int(compteur_jour_heure)]['wind_speed']) * 3.6)
+          description = data[moment][int(compteur_jour_heure)]['weather'][0]['description']
+          message = f"Température dans la journée: **{température_jour}°C** \nTempérature dans la nuit: **{température_nuit}éC** \nTaux d'humidité: **{humidité}%** \nVitesse du vent:  **{wind} km/h** \nEtat du ciel: **{description}**"
+          await ctx.send(message)
+        else:
+          message = f"Erreur valeur.\nVeuillez donner une valeur correct (entre 0 et 7)."
+          await ctx.send(message)
+    else:
+        message = f"Erreur message.\nVeuillez donner le moment correct (current, hourly ou daily)."
         await ctx.send(message)
 
 
